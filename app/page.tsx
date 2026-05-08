@@ -1,65 +1,118 @@
-import Image from "next/image";
+'use client'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import Link from 'next/link'
 
-export default function Home() {
+interface Stats {
+  totalMembres: number
+  parRole: { nom: string; count: number }[]
+  totalRepetitions: number
+  totalMedias: number
+  totalChants: number
+}
+
+export default function Dashboard() {
+  const [stats, setStats] = useState<Stats>({
+    totalMembres: 0,
+    parRole: [],
+    totalRepetitions: 0,
+    totalMedias: 0,
+    totalChants: 0,
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function chargerStats() {
+      const [membres, roles, repetitions, medias, chants] = await Promise.all([
+        supabase.from('membres').select('id', { count: 'exact' }),
+        supabase.from('roles').select('nom, membre_roles(count)'),
+        supabase.from('repetitions').select('id', { count: 'exact' }),
+        supabase.from('medias').select('id', { count: 'exact' }),
+        supabase.from('chants').select('id', { count: 'exact' }),
+      ])
+
+      setStats({
+        totalMembres: membres.count || 0,
+        parRole: (roles.data || []).map((r: any) => ({
+          nom: r.nom,
+          count: r.membre_roles?.[0]?.count || 0,
+        })),
+        totalRepetitions: repetitions.count || 0,
+        totalMedias: medias.count || 0,
+        totalChants: chants.count || 0,
+      })
+      setLoading(false)
+    }
+    chargerStats()
+  }, [])
+
+  const cartes = [
+    { label: 'Membres', valeur: stats.totalMembres, emoji: '👥', href: '/membres', couleur: 'bg-blue-500' },
+    { label: 'Répétitions', valeur: stats.totalRepetitions, emoji: '📅', href: '/repetitions', couleur: 'bg-green-500' },
+    { label: 'Médias', valeur: stats.totalMedias, emoji: '🖼️', href: '/medias', couleur: 'bg-purple-500' },
+    { label: 'Chants', valeur: stats.totalChants, emoji: '🎵', href: '/chants', couleur: 'bg-orange-500' },
+  ]
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-400 text-lg">Chargement...</div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div>
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-gray-800">Tableau de bord</h2>
+        <p className="text-gray-500 mt-1">Vue d'ensemble de votre groupe musical</p>
+      </div>
+
+      {/* Cartes statistiques */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {cartes.map((carte) => (
+          <Link key={carte.label} href={carte.href}>
+            <div className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer border border-gray-100">
+              <div className={`w-12 h-12 ${carte.couleur} rounded-xl flex items-center justify-center text-2xl mb-4`}>
+                {carte.emoji}
+              </div>
+              <p className="text-gray-500 text-sm">{carte.label}</p>
+              <p className="text-4xl font-bold text-gray-800 mt-1">{carte.valeur}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* Répartition par rôle */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Répartition par rôle</h3>
+        {stats.totalMembres === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-400 mb-4">Aucun membre pour l'instant</p>
+            <Link
+              href="/membres"
+              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+              Ajouter le premier membre
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {stats.parRole.filter(r => r.count > 0).map((role) => (
+              <div key={role.nom} className="flex items-center gap-3">
+                <span className="w-32 text-sm text-gray-600">{role.nom}</span>
+                <div className="flex-1 bg-gray-100 rounded-full h-3">
+                  <div
+                    className="bg-indigo-500 h-3 rounded-full transition-all"
+                    style={{ width: `${Math.max(5, (role.count / stats.totalMembres) * 100)}%` }}
+                  />
+                </div>
+                <span className="text-sm font-semibold text-gray-700 w-6">{role.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
-  );
+  )
 }
