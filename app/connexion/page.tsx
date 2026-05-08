@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import Image from 'next/image'
 
 export default function PageConnexion() {
   const router = useRouter()
@@ -56,17 +56,19 @@ export default function PageConnexion() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
 
-        {/* Logo */}
+        {/* Logo Fusion Gospel */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-indigo-100 rounded-2xl flex items-center justify-center text-4xl mx-auto mb-4">
-            🎶
+          <div className="flex justify-center mb-2">
+            <Image
+              src="/logo_sami.jpeg"
+              alt="Logo Fusion Gospel"
+              width={140}
+              height={140}
+              className="rounded-2xl object-contain"
+              priority
+            />
           </div>
-
-          <h1 className="text-2xl font-bold text-gray-800">
-            Fusion Gospel
-          </h1>
-
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 mt-2 text-sm">
             Connectez-vous à votre espace
           </p>
         </div>
@@ -79,13 +81,10 @@ export default function PageConnexion() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
             </label>
-
             <input
               type="email"
               value={form.email}
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
               onKeyDown={handleKeyDown}
               placeholder="votre@email.com"
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
@@ -97,13 +96,10 @@ export default function PageConnexion() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Mot de passe
             </label>
-
             <input
               type="password"
               value={form.password}
-              onChange={(e) =>
-                setForm({ ...form, password: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
               onKeyDown={handleKeyDown}
               placeholder="••••••••"
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
@@ -113,9 +109,7 @@ export default function PageConnexion() {
           {/* Erreur */}
           {erreur && (
             <div className="bg-red-50 border border-red-100 rounded-xl p-3">
-              <p className="text-red-600 text-sm text-center">
-                ❌ {erreur}
-              </p>
+              <p className="text-red-600 text-sm text-center">❌ {erreur}</p>
             </div>
           )}
 
